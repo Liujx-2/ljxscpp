@@ -1,0 +1,33 @@
+# (main)/.github/workflows/auto_code_sync.yml
+name: Sync code to blogpage/code
+
+# 1. 设置触发条件：当推送到 main 分支时触发
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      # 2. 检出仓库代码（默认是 main 分支）
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 获取完整的提交历史
+
+      # 3. 使用现成的同步 Action 将代码推送到指定分支的指定目录
+      - name: Push to another branch
+        uses: cpina/github-action-push-to-another-branch@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.GITHUB_TOKEN }} # 使用 GitHub 自动生成的 Token
+        with:
+          source-directory: '.' # 要同步的源目录（'.' 代表整个 main 根目录）
+          destination-github-username: ${{ github.repository_owner }} # 你的 GitHub 用户名/组织名
+          destination-repository-name: ${{ github.event.repository.name }} # 当前仓库名
+          destination-branch: blogpage # 目标分支
+          target-directory: code # 目标分支下的文件夹名称（即 /code）
+          user-email: 'action@github.com'
+          commit-message: 'Auto-sync main to blogpage/code [skip ci]'
+          

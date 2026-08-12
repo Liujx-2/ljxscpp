@@ -1,0 +1,48 @@
+name: Sync main to blogpage/code
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 检出 main 分支
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2. 配置 Git 用户信息
+      - name: Set Git Identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      # 3. 使用原生 Git 命令将 main 同步到 blogpage 的 code 目录下
+      - name: Push to blogpage/code
+        run: |
+          mkdir -p sync_folder
+
+          # 把 main 的文件复制到临时目录（排除 .git 和临时目录本身）
+          rsync -av --exclude='.git' --exclude='sync_folder' ./ sync_folder/
+
+          # 切换到 blogpage 分支
+          git fetch origin blogpage
+          git checkout blogpage
+
+          # 将文件同步到 code 目录下
+          mkdir -p code
+          rm -rf code/*
+          cp -r sync_folder/* code/
+
+          # 提交并推送
+          git add code/
+          if git diff --staged --quiet; then
+            echo "No changes to sync."
+          else
+            git commit -m "Auto-sync main to blogpage/code [skip ci]"
+            git push origin blogpage
+          fi

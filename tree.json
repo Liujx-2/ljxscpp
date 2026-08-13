@@ -9,21 +9,5 @@
         "path": "0/cpp_basic_structure.cpp"
       }
     ]
-  },
-  {
-    "name": "new",
-    "type": "folder",
-    "children": [
-      {
-        "name": "new1.cpp",
-        "type": "file",
-        "path": "new/new1.cpp"
-      },
-      {
-        "name": "test.cpp",
-        "type": "file",
-        "path": "new/test.cpp"
-      }
-    ]
   }
 ]

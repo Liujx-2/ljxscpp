@@ -15,11 +15,6 @@
     "type": "folder",
     "children": [
       {
-        "name": "0.cpp",
-        "type": "file",
-        "path": "test/0.cpp"
-      },
-      {
         "name": "new.cpp",
         "type": "file",
         "path": "test/new.cpp"

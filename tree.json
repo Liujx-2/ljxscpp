@@ -11,13 +11,18 @@
     ]
   },
   {
-    "name": "test",
+    "name": "new",
     "type": "folder",
     "children": [
       {
-        "name": "new.cpp",
+        "name": "new1.cpp",
         "type": "file",
-        "path": "test/new.cpp"
+        "path": "new/new1.cpp"
+      },
+      {
+        "name": "test.cpp",
+        "type": "file",
+        "path": "new/test.cpp"
       }
     ]
   }

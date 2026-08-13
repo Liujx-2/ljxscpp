@@ -1,0 +1,76 @@
+name: Auto scan tree
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - blogpage
+    paths:
+      - 'code/**'
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Generate tree.json
+        run: |
+          import os
+          import json
+
+          def scan_directory(start_path):
+              tree = []
+              try:
+                  items = sorted(os.listdir(start_path))
+                  for item in items:
+                      if item.startswith('.'):
+                          continue
+                      full_path = os.path.join(start_path, item)
+                      rel_path = os.path.relpath(full_path, 'code')
+
+                      if os.path.isdir(full_path):
+                          node = {
+                              'name': item,
+                              'type': 'folder',
+                              'children': scan_directory(full_path)
+                          }
+                          tree.append(node)
+                      else:
+                          node = {
+                              'name': item,
+                              'type': 'file',
+                              'path': rel_path.replace('\\', '/')
+                          }
+                          tree.append(node)
+              except PermissionError:
+                  pass
+              return tree
+
+          if os.path.exists('./code'):
+              file_tree = scan_directory('./code')
+              with open('tree.json', 'w', encoding='utf-8') as f:
+                  json.dump(file_tree, f, ensure_ascii=False, indent=2)
+              print('✅ tree.json generated successfully!')
+          else:
+              print('❌ Folder ./code not found!')
+              exit(1)
+        shell: python
+
+      - name: Commit and push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add tree.json
+          git commit -m "Auto update tree.json" || echo "No changes to commit"
+          git push origin blogpage || echo "Nothing to push"

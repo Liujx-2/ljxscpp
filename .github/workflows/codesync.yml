@@ -39,10 +39,12 @@ jobs:
           cp -r sync_folder/* code/
 
           # 提交并推送
+          # 提交并推送
           git add code/
           if git diff --staged --quiet; then
             echo "No changes to sync."
           else
             git commit -m "Auto-sync main to blogpage/code [skip ci]"
-            git push origin blogpage
+            # ======= 关键修改：把推送到远程的链接加上授权 Token =======
+            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
           fi

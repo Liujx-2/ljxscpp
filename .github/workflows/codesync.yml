@@ -53,5 +53,5 @@ jobs:
             # 使用 gh 命令行唤醒（系统自带，无需安装）
             # --ref blogpage 明确指定在 blogpage 分支上唤醒对应的工作流
             echo "🚀 Triggering update_tree workflow on blogpage branch..."
-            gh workflow run --ref blogpage
+            gh workflow run update_tree.yml --ref blogpage
           fi

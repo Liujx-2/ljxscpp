@@ -23,6 +23,8 @@ jobs:
 
       # 3. 使用原生 Git 命令将 main 同步到 blogpage 的 code 目录下
       - name: Push to blogpage/code
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p sync_folder
 

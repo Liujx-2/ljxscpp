@@ -1,0 +1,58 @@
+name: Scan code and generate tree.json
+
+on:
+  workflow_dispatch:                 # 1. 允许你手动去 Actions 页面点按钮
+  workflow_run:
+    workflows: ["Sync main to blogpage/code"]
+    types:
+      - completed                    # 2. 同步任务跑完就立刻跟着跑
+  push:
+    branches:
+      - blogpage
+    paths:
+      - 'code/**'
+
+jobs:
+  scan-and-update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Generate tree.json
+        run: |
+          python -c "
+import os, json
+def scan(path):
+    tree=[]
+    try:
+        for i in sorted(os.listdir(path)):
+            if i.startswith('.'): continue
+            full=os.path.join(path,i)
+            rel=os.path.relpath(full,'code')
+            if os.path.isdir(full):
+                tree.append({'name':i,'type':'folder','children':scan(full)})
+            else:
+                tree.append({'name':i,'type':'file','path':rel.replace('\\','/')})
+    except: pass
+    return tree
+if os.path.exists('./code'):
+    with open('tree.json','w',encoding='utf-8') as f:
+        json.dump(scan('./code'), f, ensure_ascii=False, indent=2)
+    print('✅ tree.json generated')
+"
+
+      - name: Push updates
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add tree.json
+          git commit -m "Auto update tree.json" || echo "No changes, skipping"
+          git push origin blogpage || echo "Nothing to push"

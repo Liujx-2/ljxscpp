@@ -39,20 +39,17 @@ jobs:
           cp -r sync_folder/* code/
 
           # 提交并推送
-          - name: Push and Trigger update_tree
-            run: |
-              git add code/
-              if git diff --staged --quiet; then
-                echo "No changes to sync."
-              else
-                git commit -m "Auto-sync main to blogpage/code [skip ci]"
-                git push origin blogpage
+          # - name: Push and Trigger update_tree
+          #   run: |
+          git add code/
+          if git diff --staged --quiet; then
+            echo "No changes to sync."
+          else
+            git commit -m "Auto-sync main to blogpage/code [skip ci]"
+            git push origin blogpage
       
-                # 下面这行使用 curl 一秒都不浪费地唤醒 blogpage 的 workflow
-                echo "🚀 Triggering update_tree workflow on blogpage branch..."
-                curl -X POST \
-                  -H "Accept: application/vnd.github.v3+json" \
-                  -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-                  https://api.github.com/repos/${{ github.repository }}/actions/workflows/update_tree.yml/dispatches \
-                  -d '{"ref":"blogpage"}'
-              fi
+            # 使用 gh 命令行唤醒（系统自带，无需安装）
+            # --ref blogpage 明确指定在 blogpage 分支上唤醒对应的工作流
+            echo "🚀 Triggering update_tree workflow on blogpage branch..."
+            gh workflow run --ref blogpage
+          fi

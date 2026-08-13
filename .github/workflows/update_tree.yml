@@ -1,7 +1,12 @@
 name: Auto scan tree
 
+# 触发条件：由另一个 workflow 跑完触发，或者允许手动点
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Sync main to blogpage/code"]  # 注意：这里的名字必须和那个脚本的 'name:' 一模一样！
+    types:
+      - completed
   push:
     branches:
       - blogpage

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>ljx's C++ practice blog</title>
+    
+    <!-- 代码高亮库 (极简默认主题) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <!-- Markdown 解析库 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        /* 全局极简原生风格 */
+        body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; color: #000; background: #fff; }
+        
+        /* 顶部页眉 */
+        .header {
+            text-align: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #ccc;
+        }
+        .header h1 { margin: 0; font-size: 24px; font-weight: bold; }
+        .header p { margin: 5px 0 0; font-size: 14px; }
+
+        /* 左右分栏容器 */
+        .container {
+            display: flex;
+            height: calc(100vh - 70px);
+            width: 100%;
+        }
+
+        /* 左侧目录栏 */
+        .sidebar {
+            width: 250px;
+            border-right: 1px solid #ccc;
+            overflow-y: auto;
+            padding: 10px;
+            box-sizing: border-box;
+            background: #f9f9f9;
+        }
+
+        /* 目录树样式 */
+        ul { list-style: none; padding-left: 15px; margin: 0; }
+        li { margin: 3px 0; cursor: pointer; font-size: 14px; }
+        .folder { font-weight: bold; }
+        .file { font-weight: normal; color: #333; }
+        .file:hover, .folder:hover { background: #eee; }
+        .tree-root { padding-left: 0; }
+
+        /* 右侧内容显示区 */
+        .content-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #fff;
+            box-sizing: border-box;
+        }
+
+        /* 代码块样式 */
+        pre {
+            background: #f6f8fa;
+            padding: 15px;
+            border: 1px solid #ddd;
+            overflow-x: auto;
+        }
+        code { font-family: monospace; font-size: 14px; }
+
+        /* Markdown 预览排版 */
+        .content-area p { margin: 10px 0; line-height: 1.6; }
+        .content-area h1, h2, h3 { border-bottom: 1px solid #eee; padding-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>ljx's C++ practice blog</h1>
+        <p>ljx的C++练习博客</p>
+        <hr>
+    </div>
+
+    <div class="container">
+        <!-- 左侧目录区 -->
+        <div class="sidebar" id="fileTree">
+            <p style="color:#666;">加载目录中...</p>
+        </div>
+        
+        <!-- 右侧内容区 -->
+        <div class="content-area" id="contentViewer">
+            <p>左侧选择文件预览</p>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = '/code/';
+        const fileTreeEl = document.getElementById('fileTree');
+        const contentViewerEl = document.getElementById('contentViewer');
+
+        // 1. 加载 GitHub Actions 自动生成的 json
+        async function loadFileStructure() {
+            try {
+                const response = await fetch('/tree.json'); 
+                return await response.json();
+            } catch (error) {
+                console.error("无法读取 tree.json，请确保 GitHub Action 已成功运行！", error);
+                return [];
+            }
+        }
+
+        // 2. 渲染树形目录
+        function renderTree(nodes, parentElement) {
+            if (nodes.length === 0) {
+                parentElement.innerHTML = '<p style="font-size:12px;color:#666;">暂无内容</p>';
+                return;
+            }
+            const ul = document.createElement('ul');
+            ul.className = 'tree-root';
+            
+            nodes.sort((a, b) => {
+                if (a.type === 'folder' && b.type !== 'folder') return -1;
+                if (a.type !== 'folder' && b.type === 'folder') return 1;
+                return a.name.localeCompare(b.name);
+            });
+
+            nodes.forEach(node => {
+                const li = document.createElement('li');
+                li.textContent = node.type === 'folder' ? `📁 ${node.name}` : `📄 ${node.name}`;
+                
+                if (node.type === 'folder') {
+                    li.className = 'folder';
+                    li.onclick = function(e) {
+                        e.stopPropagation();
+                        const existingUl = this.querySelector('ul');
+                        if (existingUl) {
+                            existingUl.style.display = existingUl.style.display === 'none' ? 'block' : 'none';
+                            this.textContent = existingUl.style.display === 'none' ? `📁 ${node.name}` : `📂 ${node.name}`;
+                        } else {
+                            this.textContent = `📂 ${node.name}`;
+                            if (node.children && node.children.length > 0) {
+                                renderTree(node.children, this);
+                            }
+                        }
+                    };
+                } else {
+                    li.className = 'file';
+                    li.onclick = function(e) {
+                        e.stopPropagation();
+                        loadFileContent(node.path);
+                    };
+                }
+                ul.appendChild(li);
+            });
+            parentElement.appendChild(ul);
+        }
+
+        // 3. 读取并渲染文件内容
+        async function loadFileContent(filePath) {
+            try {
+                contentViewerEl.innerHTML = '<p style="color:#666;">加载中...</p>';
+                const response = await fetch(BASE_URL + filePath);
+                if (!response.ok) throw new Error('文件不存在');
+                const text = await response.text();
+                
+                if (filePath.endsWith('.md')) {
+                    // Markdown 渲染
+                    contentViewerEl.innerHTML = marked.parse(text);
+                } else {
+                    // 代码/文本渲染
+                    let ext = filePath.split('.').pop();
+                    let langClass = `language-${ext}`;
+                    if (['cpp', 'h', 'c', 'cc'].includes(ext)) langClass = 'language-cpp';
+                    if (['py'].includes(ext)) langClass = 'language-python';
+                    if (['txt', 'in', 'out', 'log'].includes(ext)) langClass = 'language-plaintext';
+                    if (['json'].includes(ext)) langClass = 'language-json';
+
+                    // 防 XSS 注入
+                    const safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+                    
+                    contentViewerEl.innerHTML = `<pre><code class="${langClass}">${safeText}</code></pre>`;
+                    hljs.highlightAll(); // 触发代码高亮
+                }
+            } catch (error) {
+                contentViewerEl.innerHTML = `<p style="color: red;">加载错误: ${error.message}</p>`;
+            }
+        }
+
+        // 4. 页面初始化
+        (async function init() {
+            const rootNodes = await loadFileStructure();
+            fileTreeEl.innerHTML = '';
+            renderTree(rootNodes, fileTreeEl);
+        })();
+    </script>
+</body>
+</html>

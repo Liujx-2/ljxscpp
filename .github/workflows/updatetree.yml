@@ -1,0 +1,78 @@
+name: Scan /code and update tree.json
+
+on:
+  push:
+    branches:
+      - blogpage  # 如果你的主分支叫 master，请改成 master
+    paths:
+      - 'code/**'  # 只有当 code 文件夹里的内容发生变动时，才触发这个 Action
+
+jobs:
+  scan-and-update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # 允许这个 Action 向你的仓库提交代码
+    steps:
+      # 1. 拉取你的仓库最新代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. 设置 Python 环境
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      # 3. 运行扫描脚本生成 tree.json
+      - name: Run directory scanner
+        run: |
+          python -c "
+import os
+import json
+
+def scan_directory(start_path):
+    tree = []
+    try:
+        items = sorted(os.listdir(start_path))
+        for item in items:
+            if item.startswith('.'): 
+                continue
+            full_path = os.path.join(start_path, item)
+            rel_path = os.path.relpath(full_path, 'code') 
+            
+            if os.path.isdir(full_path):
+                node = {
+                    'name': item,
+                    'type': 'folder',
+                    'children': scan_directory(full_path)
+                }
+                tree.append(node)
+            else:
+                node = {
+                    'name': item,
+                    'type': 'file',
+                    'path': rel_path.replace('\\', '/')
+                }
+                tree.append(node)
+    except PermissionError:
+        pass
+    return tree
+
+if __name__ == '__main__':
+    if os.path.exists('./code'):
+        file_tree = scan_directory('./code')
+        with open('tree.json', 'w', encoding='utf-8') as f:
+            json.dump(file_tree, f, ensure_ascii=False, indent=2)
+        print('✅ Successfully write in tree.json')
+    else:
+        print('❌ Folder ./code not found')
+        exit(1)
+"
+
+      # 4. 检查是否有变化并提交
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add tree.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto update tree.json" && git push)

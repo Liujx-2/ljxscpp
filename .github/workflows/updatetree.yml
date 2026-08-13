@@ -1,0 +1,104 @@
+name: Scan /code and update tree.json
+
+on:
+  push:
+    branches:
+      - blogpage  # 🔴 重点检查：这必须和你 Github 仓库主页显示的主分支名字完全一样（包括大小写）
+    paths:
+      - 'code/**'
+
+jobs:
+  scan-and-update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # 1. 拉取代码 (增加 fetch-depth: 0 防止 git 浅克隆冲突)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2. 设置 Python
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      # 3. 运行扫描脚本生成 tree.json
+      - name: Run directory scanner
+        run: |
+          python -c "
+import os
+import json
+
+def scan_directory(start_path):
+    tree = []
+    try:
+        items = sorted(os.listdir(start_path))
+        for item in items:
+            if item.startswith('.'): 
+                continue
+            full_path = os.path.join(start_path, item)
+            rel_path = os.path.relpath(full_path, 'code') 
+
+            if os.path.isdir(full_path):
+                node = {
+                    'name': item,
+                    'type': 'folder',
+                    'children': scan_directory(full_path)
+                }
+                tree.append(node)
+            else:
+                node = {
+                    'name': item,
+                    'type': 'file',
+                    'path': rel_path.replace('\\', '/')
+                }
+                tree.append(node)
+    except PermissionError:
+        pass
+    return tree
+
+if __name__ == '__main__':
+    if os.path.exists('./code'):
+        file_tree = scan_directory('./code')
+        with open('tree.json', 'w', encoding='utf-8') as f:
+            json.dump(file_tree, f, ensure_ascii=False, indent=2)
+        print('✅ Successfully write in tree.json')
+    else:
+        print('❌ Folder ./code not found')
+        exit(1)
+"
+
+      # 4. 防冲突提交机制 (彻底修复 push 失败问题)
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          # 检查 tree.json 是否有更改
+          git add tree.json
+          if git diff --cached --quiet; then
+            echo "No changes to tree.json, exiting."
+            exit 0
+          fi
+
+          echo "Changes detected, attempting to commit..."
+          git commit -m "Auto update tree.json"
+
+          # 尝试 3 次推送，如果失败则先拉取最新代码再推，保证 100% 成功
+          MAX_RETRIES=3
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Push attempt $i of $MAX_RETRIES..."
+            if git push; then
+              echo "✅ Push successful!"
+              exit 0
+            fi
+            echo "Push failed. Pulling latest changes and retrying..."
+            sleep 5
+            git pull --rebase
+          done
+
+          echo "❌ Failed to push after $MAX_RETRIES attempts."
+          exit 1

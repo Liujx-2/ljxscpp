@@ -11,6 +11,29 @@
     ]
   },
   {
+    "name": "Luogu",
+    "type": "folder",
+    "children": [
+      {
+        "name": "入门1",
+        "type": "folder",
+        "children": [
+          {
+            "name": "B2002",
+            "type": "folder",
+            "children": [
+              {
+                "name": "main.cpp",
+                "type": "file",
+                "path": "Luogu/入门1/B2002/main.cpp"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name": "introduction.md",
     "type": "file",
     "path": "introduction.md"

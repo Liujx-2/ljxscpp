@@ -1,3 +1,5 @@
+// Luogu P1000 超级玛丽游戏
+
 #include <bits/stdc++.h>
 using namespace std;
 

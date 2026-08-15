@@ -28,6 +28,17 @@
                 "path": "Luogu/入门1/B2002/main.cpp"
               }
             ]
+          },
+          {
+            "name": "B2025",
+            "type": "folder",
+            "children": [
+              {
+                "name": "main.cpp",
+                "type": "file",
+                "path": "Luogu/入门1/B2025/main.cpp"
+              }
+            ]
           }
         ]
       }

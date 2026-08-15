@@ -30,6 +30,17 @@
             ]
           },
           {
+            "name": "B2005",
+            "type": "folder",
+            "children": [
+              {
+                "name": "main.cpp",
+                "type": "file",
+                "path": "Luogu/入门1/B2005/main.cpp"
+              }
+            ]
+          },
+          {
             "name": "B2025",
             "type": "folder",
             "children": [

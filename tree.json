@@ -55,6 +55,17 @@
                 "path": "Luogu/入门1/P1000/reflection.md"
               }
             ]
+          },
+          {
+            "name": "P1001",
+            "type": "folder",
+            "children": [
+              {
+                "name": "main.cpp",
+                "type": "file",
+                "path": "Luogu/入门1/P1001/main.cpp"
+              }
+            ]
           }
         ]
       }

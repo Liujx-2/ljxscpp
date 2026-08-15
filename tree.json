@@ -81,16 +81,5 @@
         ]
       }
     ]
-  },
-  {
-    "name": "above_all",
-    "type": "folder",
-    "children": [
-      {
-        "name": "introduction.md",
-        "type": "file",
-        "path": "above_all/introduction.md"
-      }
-    ]
   }
 ]

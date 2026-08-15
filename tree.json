@@ -1,16 +1,5 @@
 [
   {
-    "name": "0",
-    "type": "folder",
-    "children": [
-      {
-        "name": "cpp_basic_structure.cpp",
-        "type": "file",
-        "path": "0/cpp_basic_structure.cpp"
-      }
-    ]
-  },
-  {
     "name": "Luogu",
     "type": "folder",
     "children": [

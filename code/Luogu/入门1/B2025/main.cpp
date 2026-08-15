@@ -1,3 +1,5 @@
+// Luogu B2025 输出字符菱形
+
 #include <iostream>
 using namespace std;
 

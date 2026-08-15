@@ -39,6 +39,17 @@
                 "path": "Luogu/入门1/B2025/main.cpp"
               }
             ]
+          },
+          {
+            "name": "P1000",
+            "type": "folder",
+            "children": [
+              {
+                "name": "main.cpp",
+                "type": "file",
+                "path": "Luogu/入门1/P1000/main.cpp"
+              }
+            ]
           }
         ]
       }

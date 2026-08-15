@@ -48,6 +48,11 @@
                 "name": "main.cpp",
                 "type": "file",
                 "path": "Luogu/入门1/P1000/main.cpp"
+              },
+              {
+                "name": "reflection.md",
+                "type": "file",
+                "path": "Luogu/入门1/P1000/reflection.md"
               }
             ]
           }

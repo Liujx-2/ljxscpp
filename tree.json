@@ -86,5 +86,16 @@
     "name": "introduction.md",
     "type": "file",
     "path": "introduction.md"
+  },
+  {
+    "name": "memes",
+    "type": "folder",
+    "children": [
+      {
+        "name": "copypasta_collection.md",
+        "type": "file",
+        "path": "memes/copypasta_collection.md"
+      }
+    ]
   }
 ]
